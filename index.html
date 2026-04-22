@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Espace Cours">
+    <meta name="description" content="Gestionnaire personnel de cours, TD et corrections">
+    <title>Mon Espace Cours</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            height: 100%;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #app {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .safe-top {
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            padding-top: max(1rem, env(safe-area-inset-top));
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 100%;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 1rem;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            font-size: 0.625rem;
+            gap: 0.25rem;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active .nav-icon {
+            transform: translateY(-2px);
+        }
+
+        .nav-item:active {
+            opacity: 0.7;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            word-break: break-word;
+        }
+
+        .card-meta {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-info {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .progress-section {
+            margin-top: 0.75rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 0.75rem;
+            -webkit-appearance: none;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            width: auto;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: calc(80px + env(safe-area-inset-bottom) + 1rem);
+            right: 1rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+            background: var(--card);
+            -webkit-appearance: none;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+
+        .file-upload:active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .list-item {
+            background: var(--card);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:active {
+            background: var(--bg);
+            transform: scale(0.98);
+        }
+
+        .list-item-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .list-item-info p {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.5rem;
+            border: none;
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            background: var(--primary);
+            color: white;
+            transform: scale(0.9);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.5rem;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-light);
+            background: var(--bg);
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:active {
+            opacity: 0.8;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula-card {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+        }
+
+        .formula-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .formula-content {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .exercise-item {
+            background: var(--card);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .exercise-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .answer-box {
+            padding: 0.875rem;
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.9375rem;
+        }
+
+        .answer-correct {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .answer-student {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .result-badge {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin-top: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .result-partial {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .result-fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pdf-container {
+            width: 100%;
+            height: 70vh;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        .pdf-container iframe,
+        .pdf-container object {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: var(--card);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            background: var(--card);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            opacity: 0.5;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-sheet {
+            background: var(--card);
+            border-radius: 1.5rem 1.5rem 0 0;
+            padding: 1.5rem;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+        }
+
+        .modal-overlay.active .modal-sheet {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:active {
+            background: var(--border);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: calc(1rem + env(safe-area-inset-top));
+            left: 1rem;
+            right: 1rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            box-shadow: var(--shadow-lg);
+            animation: slideDown 0.3s ease;
+            pointer-events: auto;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--danger); }
+        .toast-info { background: var(--primary); }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 32px;
+            background: var(--border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .flex { display: flex; }
+        .gap-2 { gap: 0.75rem; }
+        .flex-1 { flex: 1; }
+
+        .media-preview {
+            max-width: 100%;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .install-banner {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .menu-sheet {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .menu-item:active {
+            background: var(--bg);
+        }
+
+        .menu-item-icon {
+            font-size: 1.5rem;
+        }
+
+        .menu-item-text {
+            flex: 1;
+        }
+
+        .menu-item-title {
+            font-weight: 600;
+        }
+
+        .menu-item-desc {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        @media (min-width: 768px) {
+            .app-content {
+                max-width: 600px;
+                margin: 0 auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="app-header safe-top">
+            <div class="header-content">
+                <button class="header-btn" id="backBtn" onclick="goBack()" style="display: none;">←</button>
+                <h1 class="header-title" id="pageTitle">Mon Espace Cours</h1>
+                <button class="header-btn" onclick="showMenu()">⋮</button>
+            </div>
+        </header>
+
+        <main class="app-content" id="mainContent">
+            <div class="install-banner" id="installBanner">
+                <span>📱 Installer l'application</span>
+                <button class="btn btn-small" style="width: auto; margin: 0; background: white; color: var(--primary);" onclick="installApp()">Installer</button>
+            </div>
+        </main>
+
+        <nav class="bottom-nav safe-bottom">
+            <button class="nav-item active" onclick="navigateTo('dashboard')">
+                <span class="nav-icon">🏠</span>
+                <span>Accueil</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('subjects')">
+                <span class="nav-icon">📖</span>
+                <span>Cours</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('submit')">
+                <span class="nav-icon">✏️</span>
+                <span>Exercice</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('settings')">
+                <span class="nav-icon">⚙️</span>
+                <span>Paramètres</span>
+            </button>
+        </nav>
+
+        <button class="fab" id="fabBtn" onclick="handleFab()">+</button>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-sheet" id="modal-content"></div>
+    </div>
+
+    <script>
+        let db = {
+            subjects: [],
+            chapters: [],
+            formulas: [],
+            exercises: [],
+            corrections: [],
+            files: {}
+        };
+
+        let currentView = 'dashboard';
+        let currentSubject = null;
+        let currentChapter = null;
+        let navStack = [];
+        let deferredPrompt = null;
+
+        function init() {
+            loadData();
+            renderDashboard();
+            checkInstallable();
+            setupSwipe();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('courseDB_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    db = { ...db, ...parsed };
+                } catch(e) {
+                    console.error('Load error:', e);
+                }
+            }
+        }
+
+        function saveData() {
+            const toSave = {
+                subjects: db.subjects,
+                chapters: db.chapters,
+                formulas: db.formulas,
+                exercises: db.exercises,
+                corrections: db.corrections
+            };
+            localStorage.setItem('courseDB_v2', JSON.stringify(toSave));
+        }
+
+        function navigateTo(view) {
+            navStack = [];
+            currentView = view;
+            updateNavActive();
+            updateFab();
+            
+            switch(view) {
+                case 'dashboard': renderDashboard(); break;
+                case 'subjects': renderSubjects(); break;
+                case 'submit': renderSubmit(); break;
+                case 'settings': renderSettings(); break;
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        function pushView(view, data = null) {
+            navStack.push({ view: currentView, data: currentSubject || currentChapter });
+            currentView = view;
+            updateBackButton();
+            updateFab();
+            
+            if (view === 'subject-detail') {
+                currentSubject = data;
+                renderSubjectDetail();
+            } else if (view === 'chapter-detail') {
+                currentChapter = data;
+                renderChapterDetail();
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        function goBack() {
+            if (navStack.length === 0) {
+                navigateTo('dashboard');
+                return;
+            }
+            
+            const prev = navStack.pop();
+            currentView = prev.view;
+            
+            if (prev.view === 'subjects') {
+                currentSubject = null;
+                renderSubjects();
+            } else if (prev.view === 'subject-detail') {
+                currentChapter = null;
+                currentSubject = prev.data;
+                renderSubjectDetail();
+            }
+            
+            updateBackButton();
+            updateFab();
+            updateNavActive();
+        }
+
+        function updateBackButton() {
+            const btn = document.getElementById('backBtn');
+            btn.style.display = navStack.length > 0 ? 'flex' : 'none';
+        }
+
+        function updateNavActive() {
+            document.querySelectorAll('.nav-item').forEach((item, idx) => {
+                item.classList.remove('active');
+                const views = ['dashboard', 'subjects', 'submit', 'settings'];
+                if (views[idx] === currentView && navStack.length === 0) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function updateFab() {
+            const fab = document.getElementById('fabBtn');
+            const viewsWithFab = ['dashboard', 'subjects', 'subject-detail', 'chapter-detail'];
+            fab.style.display = viewsWithFab.includes(currentView) ? 'flex' : 'none';
+        }
+
+        function handleFab() {
+            if (currentView === 'dashboard' || currentView === 'subjects') {
+                openModal('addSubject');
+            } else if (currentView === 'subject-detail') {
+                openModal('addChapter');
+            } else if (currentView === 'chapter-detail') {
+                showChapterActions();
+            }
+        }
+
+        function renderDashboard() {
+            document.getElementById('pageTitle').textContent = 'Mon Espace Cours';
+            
+            const totalChapters = db.chapters.length;
+            const completedChapters = db.chapters.filter(c => c.completed).length;
+            const progress = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+            
+            const recentSubjects = db.subjects.slice(-4).reverse();
+            
+            let html = `
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value">${db.subjects.length}</div>
+                        <div class="stat-label">Matières</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${totalChapters}</div>
+                        <div class="stat-label">Chapitres</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${db.exercises.length}</div>
+                        <div class="stat-label">Exercices</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${progress}%</div>
+                        <div class="stat-label">Progression</div>
+                    </div>
+                </div>
+                
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Rechercher..." oninput="searchAll(this.value)">
+                </div>
+            `;
+            
+            if (recentSubjects.length > 0) {
+                html += `<h3 style="margin-bottom: 1rem; font-size: 1.125rem;">Matières récentes</h3>`;
+                html += recentSubjects.map(s => {
+                    const chapters = db.chapters.filter(c => c.subjectId === s.id);
+                    const comp = chapters.filter(c => c.completed).length;
+                    const prog = chapters.length > 0 ? Math.round((comp / chapters.length) * 100) : 0;
+                    return `
+                        <div class="card" onclick="pushView('subject-detail', db.subjects.find(x => x.id === '${s.id}'))">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">${s.name}</div>
+                                    <div class="card-meta">${chapters.length} chapitre${chapters.length > 1 ? 's' : ''}</div>
+                                </div>
+                                <span class="badge badge-info">${prog}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${prog}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <h3>Bienvenue !</h3>
+                        <p>Commencez par ajouter votre première matière</p>
+                        <button class="btn btn-primary mt-2" onclick="openModal('addSubject')">
+                            + Ajouter une matière
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function renderSubjects() {
+            document.getElementById('pageTitle').textContent = 'Matières';
+            
+            if (db.subjects.length === 0) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📖</div>
+                        <h3>Aucune matière</h3>
+                        <p>Ajoutez votre première matière</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            document.getElementById('mainContent').innerHTML = db.subjects.map(s => {
+                const chapters = db.chapters.filter(c => c.subjectId === s.id);
+                return `
+                    <div class="card" onclick="pushView('subject-detail', db.subjects.find(x => x.id === '${s.id}'))">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${s.name}</div>
+                                <div class="card-meta">${chapters.length} chapitre${chapters.length > 1 ? 's' : ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSubjectDetail() {
+            document.getElementById('pageTitle').textContent = currentSubject.name;
+            
+            const chapters = db.chapters.filter(c => c.subjectId === currentSubject.id);
+            
+            let html = `
+                <div style="margin-bottom: 1rem;">
+                    <span class="badge badge-info">${chapters.length} chapitre${chapters.length > 1 ? 's' : ''}</span>
+                    ${currentSubject.description ? `<p style="margin-top: 0.5rem; color: var(--text-light);">${currentSubject.description}</p>` : ''}
+                </div>
+            `;
+            
+            if (chapters.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📖</div>
+                        <p>Aucun chapitre dans cette matière</p>
+                    </div>
+                `;
+            } else {
+                html += chapters.map(c => `
+                    <div class="list-item" onclick="pushView('chapter-detail', db.chapters.find(x => x.id === '${c.id}'))">
+                        <div class="list-item-info">
+                            <h4>${c.title}</h4>
+                            <p>${c.description || 'Pas de description'}</p>
+                            <div style="margin-top: 0.5rem;">
+                                ${c.completed ? '<span class="badge badge-success">✓ Terminé</span>' : '<span class="badge badge-warning">En cours</span>'}
+                            </div>
+                        </div>
+                        <span style="font-size: 1.25rem; opacity: 0.3;">›</span>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function renderChapterDetail() {
+            document.getElementById('pageTitle').textContent = currentChapter.title;
+            
+            const tabs = [
+                { id: 'cours', icon: '📄', label: 'Cours' },
+                { id: 'td', icon: '📝', label: 'TD' },
+                { id: 'formules', icon: '📐', label: 'Formules' },
+                { id: 'exercices', icon: '✏️', label: 'Exos' },
+                { id: 'corrections', icon: '✅', label: 'Corrs' }
+            ];
+            
+            let html = `
+                <div class="toggle-row" style="margin-bottom: 1rem;">
+                    <span style="font-weight: 600;">Chapitre terminé</span>
+                    <div class="toggle-switch ${currentChapter.completed ? 'active' : ''}" onclick="toggleChapterComplete()"></div>
+                </div>
+                
+                <div class="tabs no-scrollbar">
+                    ${tabs.map(t => `
+                        <button class="tab ${t.id === 'cours' ? 'active' : ''}" onclick="switchTab('${t.id}')">
+                            ${t.icon} ${t.label}
+                        </button>
+                    `).join('')}
+                </div>
+                
+                <div id="tab-cours" class="tab-content active">
+                    ${renderCoursTab()}
+                </div>
+                <div id="tab-td" class="tab-content">
+                    ${renderTDTab()}
+                </div>
+                <div id="tab-formules" class="tab-content">
+                    ${renderFormulesTab()}
+                </div>
+                <div id="tab-exercices" class="tab-content">
+                    ${renderExercicesTab()}
+                </div>
+                <div id="tab-corrections" class="tab-content">
+                    ${renderCorrectionsTab()}
+                </div>
+            `;
+            
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        function renderCoursTab() {
+            if (currentChapter.coursFile && db.files[currentChapter.coursFile]) {
+                return `
+                    <div class="pdf-container">
+                        <iframe src="${db.files[currentChapter.coursFile]}" type="application/pdf"></iframe>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn btn-secondary btn-small" onclick="uploadFile('cours')">Remplacer</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteFile('cours')">Supprimer</button>
+                    </div>
+                `;
+            }
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📄</div>
+                    <p>Aucun cours</p>
+                    <button class="btn btn-primary mt-2" onclick="uploadFile('cours')">Uploader PDF</button>
+                </div>
+            `;
+        }
+
+        function renderTDTab() {
+            if (currentChapter.tdFile && db.files[currentChapter.tdFile]) {
+                return `
+                    <div class="pdf-container">
+                        <iframe src="${db.files[currentChapter.tdFile]}" type="application/pdf"></iframe>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn btn-secondary btn-small" onclick="uploadFile('td')">Remplacer</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteFile('td')">Supprimer</button>
+                    </div>
+                `;
+            }
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <p>Aucun TD</p>
+                    <button class="btn btn-primary mt-2" onclick="uploadFile('td')">Uploader TD</button>
+                </div>
+            `;
+        }
+
+        function renderFormulesTab() {
+            const formulas = db.formulas.filter(f => f.chapterId === currentChapter.id);
+            
+            let html = `
+                <button class="btn btn-primary" onclick="openModal('addFormula')">
+                    + Ajouter une formule
+                </button>
+            `;
+            
+            if (formulas.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📐</div>
+                        <p>Aucune formule</p>
+                    </div>
+                `;
+            } else {
+                html += formulas.map(f => `
+                    <div class="formula-card">
+                        <div class="formula-title">${f.name}</div>
+                        <div class="formula-content">${f.content}</div>
+                        ${f.description ? `<p style="margin-top: 0.5rem; font-size: 0.875rem; opacity: 0.8;">${f.description}</p>` : ''}
+                        <button class="icon-btn mt-1" onclick="deleteFormula('${f.id}')" style="float: right;">🗑️</button>
+                        <div style="clear: both;"></div>
+                    </div>
+                `).join('');
+            }
+            
+            return html;
+        }
+
+        function renderExercicesTab() {
+            const exercises = db.exercises.filter(e => e.chapterId === currentChapter.id);
+            
+            if (exercises.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✏️</div>
+                        <p>Aucun exercice soumis</p>
+                    </div>
+                `;
+            }
+            
+            return exercises.map(ex => `
+                <div class="exercise-item">
+                    <div class="exercise-header">
+                        <span class="exercise-title">${ex.exerciseNumber}</span>
+                        <span class="badge ${ex.score >= 0.8 ? 'badge-success' : ex.score >= 0.5 ? 'badge-warning' : 'badge-info'}">
+                            ${Math.round(ex.score * 100)}%
+                        </span>
+                    </div>
+                    <div class="answer-box answer-student">
+                        ${ex.studentAnswer || '📷 Média uploadé'}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-light);">
+                        ${new Date(ex.submittedAt).toLocaleDateString('fr-FR')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCorrectionsTab() {
+            const corrections = db.corrections.filter(c => c.chapterId === currentChapter.id);
+            
+            let html = `
+                <button class="btn btn-primary" onclick="openModal('addCorrection')">
+                    + Ajouter une correction
+                </button>
+            `;
+            
+            if (corrections.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <p>Aucune correction</p>
+                    </div>
+                `;
+            } else {
+                html += corrections.map(c => `
+                    <div class="exercise-item">
+                        <div class="exercise-header">
+                            <span class="exercise-title">${c.exerciseNumber}</span>
+                            <button class="icon-btn" onclick="deleteCorrection('${c.id}')">🗑️</button>
+                        </div>
+                        <div class="answer-box answer-correct">
+                            <strong>Réponse attendue :</strong><br>
+                            ${c.correctAnswer}
+                        </div>
+                        ${c.keywords.length > 0 ? `
+                            <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-light);">
+                                Mots-clés : ${c.keywords.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+            
+            return html;
+        }
+
+        function renderSubmit() {
+            document.getElementById('pageTitle').textContent = 'Soumettre un exercice';
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label">Matière</label>
+                        <select class="form-select" id="subSubject" onchange="updateSubmitChapters()">
+                            <option value="">Choisir...</option>
+                            ${db.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Chapitre</label>
+                        <select class="form-select" id="subChapter">
+                            <option value="">Choisir d'abord une matière</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Numéro de l'exercice</label>
+                        <input type="text" class="form-input" id="subNumber" placeholder="Ex: Exercice 3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Votre réponse</label>
+                        <textarea class="form-textarea" id="subAnswer" placeholder="Écrivez votre réponse ici..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Ou photo/vidéo</label>
+                        <label class="file-upload">
+                            <input type="file" accept="image/*,video/*" id="subMedia" onchange="previewMedia(this)">
+                            <div style="font-size: 2rem;">📷</div>
+                            <div style="margin-top: 0.5rem;">Touchez pour sélectionner</div>
+                        </label>
+                        <div id="mediaPreview"></div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="submitExercise()">
+                        Vérifier ma réponse
+                    </button>
+                    
+                    <div id="subResult"></div>
+                </div>
+            `;
+        }
+
+        function renderSettings() {
+            document.getElementById('pageTitle').textContent = 'Paramètres';
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem;">Gestion des données</h3>
+                    <button class="btn btn-success" onclick="exportData()">
+                        💾 Exporter la base
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">
+                        📥 Importer une base
+                    </button>
+                    <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importData(this)">
+                    <button class="btn btn-danger" onclick="resetData()">
+                        🗑️ Tout supprimer
+                    </button>
+                </div>
+                
+                <div class="card" style="margin-top: 1rem;">
+                    <h3 style="margin-bottom: 1rem;">À propos</h3>
+                    <p style="color: var(--text-light); font-size: 0.875rem; line-height: 1.6;">
+                        <strong>Mon Espace Cours</strong><br><br>
+                        Application 100% offline. Vos données restent sur votre appareil.<br><br>
+                        Pour partager : exportez la base et envoyez le fichier JSON.
+                    </p>
+                </div>
+            `;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function toggleChapterComplete() {
+            currentChapter.completed = !currentChapter.completed;
+            saveData();
+            
+            const toggle = document.querySelector('.toggle-switch');
+            toggle.classList.toggle('active');
+            
+            showToast(currentChapter.completed ? 'Chapitre terminé !' : 'Chapitre en cours', 'success');
+        }
+
+        function updateSubmitChapters() {
+            const subjectId = document.getElementById('subSubject').value;
+            const select = document.getElementById('subChapter');
+            
+            if (!subjectId) {
+                select.innerHTML = '<option value="">Choisir d\'abord une matière</option>';
+                return;
+            }
+            
+            const chapters = db.chapters.filter(c => c.subjectId === subjectId);
+            select.innerHTML = '<option value="">Choisir...</option>' +
+                chapters.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+        }
+
+        function previewMedia(input) {
+            const preview = document.getElementById('mediaPreview');
+            const file = input.files[0];
+            if (!file) return;
+            
+            const url = URL.createObjectURL(file);
+            if (file.type.startsWith('video/')) {
+                preview.innerHTML = `<video src="${url}" controls class="media-preview"></video>`;
+            } else {
+                preview.innerHTML = `<img src="${url}" class="media-preview">`;
+            }
+        }
+
+        function submitExercise() {
+            const chapterId = document.getElementById('subChapter').value;
+            const number = document.getElementById('subNumber').value.trim();
+            const answer = document.getElementById('subAnswer').value.trim();
+            const mediaFile = document.getElementById('subMedia').files[0];
+            
+            if (!chapterId || !number) {
+                showToast('Remplissez tous les champs obligatoires', 'error');
+                return;
+            }
+            
+            if (!answer && !mediaFile) {
+                showToast('Fournissez une réponse ou un média', 'error');
+                return;
+            }
+            
+            const corrections = db.corrections.filter(c => 
+                c.chapterId === chapterId && 
+                c.exerciseNumber.toLowerCase() === number.toLowerCase()
+            );
+            
+            const resultDiv = document.getElementById('subResult');
+            
+            if (corrections.length === 0) {
+                resultDiv.innerHTML = `
+                    <div class="result-badge result-fail" style="margin-top: 1rem;">
+                        ❌ Pas de correction pour ${number}
+                    </div>
+                `;
+                return;
+            }
+            
+            const correction = corrections[0];
+            let score = 0;
+            
+            if (answer) {
+                score = calculateSimilarity(answer.toLowerCase(), correction.correctAnswer.toLowerCase());
+                const found = correction.keywords.filter(k => answer.toLowerCase().includes(k.toLowerCase()));
+                if (found.length) score += 0.1 * found.length;
+            }
+            
+            score = Math.min(score, 1);
+            
+            let resultHTML = '';
+            if (score >= 0.8) {
+                resultHTML = `<div class="result-badge result-success">✅ Excellent ! ${Math.round(score*100)}%</div>`;
+            } else if (score >= 0.5) {
+                resultHTML = `<div class="result-badge result-partial">⚠️ Partiel ${Math.round(score*100)}%</div>`;
+            } else {
+                resultHTML = `<div class="result-badge result-fail">❌ À revoir ${Math.round(score*100)}%</div>`;
+            }
+            
+            resultHTML += `
+                <div class="answer-box answer-correct mt-2">
+                    <strong>Correction :</strong><br>${correction.correctAnswer}
+                </div>
+            `;
+            
+            const exercise = {
+                id: Date.now().toString(),
+                chapterId,
+                exerciseNumber: number,
+                studentAnswer: answer,
+                score,
+                submittedAt: new Date().toISOString()
+            };
+            
+            if (mediaFile) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    exercise.mediaData = e.target.result;
+                    db.exercises.push(exercise);
+                    saveData();
+                };
+                reader.readAsDataURL(mediaFile);
+            } else {
+                db.exercises.push(exercise);
+                saveData();
+            }
+            
+            resultDiv.innerHTML = resultHTML;
+        }
+
+        function calculateSimilarity(s1, s2) {
+            const w1 = s1.split(/\\s+/).filter(w => w.length > 2);
+            const w2 = s2.split(/\\s+/).filter(w => w.length > 2);
+            if (!w1.length || !w2.length) return 0;
+            const common = w1.filter(w => w2.includes(w));
+            return common.length / Math.max(w1.length, w2.length);
+        }
+
+        function addSubject() {
+            const name = document.getElementById('newSubjectName').value.trim();
+            const desc = document.getElementById('newSubjectDesc').value.trim();
+            
+            if (!name) {
+                showToast('Entrez un nom', 'error');
+                return;
+            }
+            
+            db.subjects.push({
+                id: Date.now().toString(),
+                name,
+                description: desc,
+                createdAt: new Date().toISOString()
+            });
+            
+            saveData();
+            closeModal();
+            showToast('Matière ajoutée !', 'success');
+            
+            if (currentView === 'dashboard') renderDashboard();
+            else if (currentView === 'subjects') renderSubjects();
+        }
+
+        function addChapter() {
+            const title = document.getElementById('newChapterTitle').value.trim();
+            const desc = document.getElementById('newChapterDesc').value.trim();
+            
+            if (!title) {
+                showToast('Entrez un titre', 'error');
+                return;
+            }
+            
+            db.chapters.push({
+                id: Date.now().toString(),
+                subjectId: currentSubject.id,
+                title,
+                description: desc,
+                completed: false,
+                coursFile: null,
+                tdFile: null
+            });
+            
+            saveData();
+            closeModal();
+            showToast('Chapitre ajouté !', 'success');
+            renderSubjectDetail();
+        }
+
+        function addFormula() {
+            const name = document.getElementById('newFormulaName').value.trim();
+            const content = document.getElementById('newFormulaContent').value.trim();
+            const desc = document.getElementById('newFormulaDesc').value.trim();
+            
+            if (!name || !content) {
+                showToast('Remplissez le nom et la formule', 'error');
+                return;
+            }
+            
+            db.formulas.push({
+                id: Date.now().toString(),
+                chapterId: currentChapter.id,
+                name,
+                content,
+                description: desc
+            });
+            
+            saveData();
+            closeModal();
+            renderChapterDetail();
+            showToast('Formule ajoutée !', 'success');
+        }
+
+        function addCorrection() {
+            const num = document.getElementById('newCorrNumber').value.trim();
+            const ans = document.getElementById('newCorrAnswer').value.trim();
+            const kw = document.getElementById('newCorrKeywords').value.trim();
+            
+            if (!num || !ans) {
+                showToast('Remplissez tous les champs', 'error');
+                return;
+            }
+            
+            db.corrections.push({
+                id: Date.now().toString(),
+                chapterId: currentChapter.id,
+                exerciseNumber: num,
+                correctAnswer: ans,
+                keywords: kw.split(',').map(k => k.trim()).filter(k => k)
+            });
+            
+            saveData();
+            closeModal();
+            renderChapterDetail();
+            showToast('Correction ajoutée !', 'success');
+        }
+
+        function deleteFormula(id) {
+            if (!confirm('Supprimer cette formule ?')) return;
+            db.formulas = db.formulas.filter(f => f.id !== id);
+            saveData();
+            renderChapterDetail();
+        }
+
+        function deleteCorrection(id) {
+            if (!confirm('Supprimer cette correction ?')) return;
+            db.corrections = db.corrections.filter(c => c.id !== id);
+            saveData();
+            renderChapterDetail();
+        }
+
+        function deleteFile(type) {
+            if (!confirm('Supprimer ce fichier ?')) return;
+            if (type === 'cours') {
+                delete db.files[currentChapter.coursFile];
+                currentChapter.coursFile = null;
+            } else {
+                delete db.files[currentChapter.tdFile];
+                currentChapter.tdFile = null;
+            }
+            saveData();
+            renderChapterDetail();
+            showToast('Fichier supprimé', 'info');
+        }
+
+        function uploadFile(type) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const fileId = `${type}_${currentChapter.id}_${Date.now()}`;
+                    db.files[fileId] = ev.target.result;
+                    
+                    if (type === 'cours') currentChapter.coursFile = fileId;
+                    else currentChapter.tdFile = fileId;
+                    
+                    saveData();
+                    renderChapterDetail();
+                    showToast('PDF uploadé !', 'success');
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        function openModal(type) {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            let html = '';
+            
+            if (type === 'addSubject') {
+                html = `
+                    <div class="modal-header">
+                        <h2 class="modal-title">Nouvelle matière</h2>
+                        <button class="modal-close" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-input" id="newSubjectName" placeholder="Mathématiques...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-input" id="newSubjectDesc" placeholder="Optionnel...">
+                    </div>
+                    <button class="btn btn-primary" onclick="addSubject()">Créer</button>
+                `;
+            } else if (type === 'addChapter') {
+                html = `
+                    <div class="modal-header">
+                        <h2 class="modal-title">Nouveau chapitre</h2>
+                        <button class="modal-close" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Titre</label>
+                        <input type="text" class="form-input" id="newChapterTitle" placeholder="Dérivation...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-input" id="newChapterDesc" placeholder="Optionnel...">
+                    </div>
+                    <button class="btn btn-primary" onclick="addChapter()">Créer</button>
+                `;
+            } else if (type === 'addFormula') {
+                html = `
+                    <div class="modal-header">
+                        <h2 class="modal-title">Nouvelle formule</h2>
+                        <button class="modal-close" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-input" id="newFormulaName" placeholder="Formule de Taylor...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Formule</label>
+                        <textarea class="form-textarea" id="newFormulaContent" placeholder="f(x) = ..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Explication</label>
+                        <input type="text" class="form-input" id="newFormulaDesc" placeholder="Optionnel...">
+                    </div>
+                    <button class="btn btn-primary" onclick="addFormula()">Ajouter</button>
+                `;
+            } else if (type === 'addCorrection') {
+                html = `
+                    <div class="modal-header">
+                        <h2 class="modal-title">Nouvelle correction</h2>
+                        <button class="modal-close" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Exercice n°</label>
+                        <input type="text" class="form-input" id="newCorrNumber" placeholder="Exercice 3">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Réponse correcte</label>
+                        <textarea class="form-textarea" id="newCorrAnswer" placeholder="La réponse..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mots-clés (séparés par ,)</label>
+                        <input type="text" class="form-input" id="newCorrKeywords" placeholder="dérivation, limite...">
+                    </div>
+                    <button class="btn btn-primary" onclick="addCorrection()">Enregistrer</button>
+                `;
+            }
+            
+            content.innerHTML = html;
+            overlay.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function showChapterActions() {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h2 class="modal-title">Actions</h2>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="menu-sheet">
+                    <div class="menu-item" onclick="uploadFile('cours'); closeModal();">
+                        <span class="menu-item-icon">📄</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Uploader Cours PDF</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="uploadFile('td'); closeModal();">
+                        <span class="menu-item-icon">📝</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Uploader TD PDF</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="openModal('addFormula');">
+                        <span class="menu-item-icon">📐</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Ajouter une formule</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="openModal('addCorrection');">
+                        <span class="menu-item-icon">✅</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Ajouter une correction</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            overlay.classList.add('active');
+        }
+
+        function showMenu() {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h2 class="modal-title">Menu</h2>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="menu-sheet">
+                    <div class="menu-item" onclick="exportData(); closeModal();">
+                        <span class="menu-item-icon">💾</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Exporter la base</div>
+                            <div class="menu-item-desc">Sauvegarder vos données</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="document.getElementById('importInput').click(); closeModal();">
+                        <span class="menu-item-icon">📥</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Importer une base</div>
+                            <div class="menu-item-desc">Restaurer des données</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="resetData(); closeModal();">
+                        <span class="menu-item-icon">🗑️</span>
+                        <div class="menu-item-text">
+                            <div class="menu-item-title">Tout supprimer</div>
+                            <div class="menu-item-desc">Réinitialiser l'application</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            overlay.classList.add('active');
+        }
+
+        function exportData() {
+            const data = {
+                metadata: {
+                    subjects: db.subjects,
+                    chapters: db.chapters,
+                    formulas: db.formulas,
+                    exercises: db.exercises,
+                    corrections: db.corrections
+                },
+                files: db.files,
+                date: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `espace-cours-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Export réussi !', 'success');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!confirm('Remplacer toutes les données actuelles ?')) return;
+                    
+                    if (data.metadata) {
+                        db.subjects = data.metadata.subjects || [];
+                        db.chapters = data.metadata.chapters || [];
+                        db.formulas = data.metadata.formulas || [];
+                        db.exercises = data.metadata.exercises || [];
+                        db.corrections = data.metadata.corrections || [];
+                    }
+                    if (data.files) db.files = data.files;
+                    
+                    saveData();
+                    showToast('Import réussi !', 'success');
+                    navigateTo('dashboard');
+                } catch(err) {
+                    showToast('Fichier invalide', 'error');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        function resetData() {
+            if (!confirm('SUPPRIMER TOUT ?')) return;
+            if (!confirm('Vraiment TOUT ?')) return;
+            
+            db = { subjects: [], chapters: [], formulas: [], exercises: [], corrections: [], files: {} };
+            localStorage.removeItem('courseDB_v2');
+            saveData();
+            showToast('Données réinitialisées', 'info');
+            navigateTo('dashboard');
+        }
+
+        function checkInstallable() {
+            window.addEventListener('beforeinstallprompt', e => {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('installBanner').classList.add('show');
+            });
+            
+            window.addEventListener('appinstalled', () => {
+                document.getElementById('installBanner').classList.remove('show');
+                deferredPrompt = null;
+                showToast('Application installée !', 'success');
+            });
+        }
+
+        function installApp() {
+            if (!deferredPrompt) {
+                showToast('Ajoutez à l\'écran d\'accueil via le menu Chrome', 'info');
+                return;
+            }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') {
+                    showToast('Installation en cours...', 'success');
+                }
+                deferredPrompt = null;
+            });
+        }
+
+        function searchAll(query) {
+            if (!query) {
+                renderDashboard();
+                return;
+            }
+            const lower = query.toLowerCase();
+            const filtered = db.subjects.filter(s => 
+                s.name.toLowerCase().includes(lower)
+            );
+            const original = db.subjects;
+            db.subjects = filtered;
+            renderDashboard();
+            db.subjects = original;
+        }
+
+        function setupSwipe() {
+            let startX = 0;
+            let startY = 0;
+            
+            document.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', e => {
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const diffX = startX - endX;
+                const diffY = startY - endY;
+                
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 100) {
+                    if (diffX > 0) {
+                        // Swipe left
+                    } else {
+                        // Swipe right - go back
+                        if (navStack.length > 0) goBack();
+                    }
+                }
+            }, { passive: true });
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        document.getElementById('modal-overlay').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>
